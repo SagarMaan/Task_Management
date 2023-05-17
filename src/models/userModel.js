@@ -5,13 +5,15 @@ const userSchema = new mongoose.Schema({
   userName: {
     type: String,
     required: true,
-    lowerCase : true
+    lowerCase : true,
+    trim : true
   },
   emailId: {
     type: String,
     required: true,
     unique: true,
-    lowerCase : true
+    lowerCase : true,
+    trim : true
   },
   password: {
     type: String,
@@ -20,7 +22,8 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ["Task Creator", "Admin", "Visitor"],
-    default : "Visitor"
+    default : "Visitor",
+    trim : true
   },
   permissions: {
     type: Boolean,

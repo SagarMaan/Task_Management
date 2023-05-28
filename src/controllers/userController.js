@@ -74,20 +74,20 @@ let userRegistration = async function (req, res) {
     let hashing = bcrypt.hashSync(password, 8);
     data.password = hashing;
 
-    if(role) {
-    if (typeof role != "string") {
-      return res
-        .status(400)
-        .send({ status: false, message: "Role must be in string" });
-    }
+    if (role) {
+      if (typeof role != "string") {
+        return res
+          .status(400)
+          .send({ status: false, message: "Role must be in string" });
+      }
 
-    if (!validateRoleStatus(role)) {
-      return res.status(400).send({
-        status: false,
-        message: "Role status should be Admin , Task Creator and Visitor .",
-      });
+      if (!validateRoleStatus(role)) {
+        return res.status(400).send({
+          status: false,
+          message: "Role status should be Admin , Task Creator and Visitor .",
+        });
+      }
     }
-  }
 
     let savedata = await userModel.create(data);
 
@@ -168,14 +168,21 @@ const userLogin = async function (req, res) {
         .status(400)
         .send({ status: false, message: "Password is incorrect" });
 
-        let token = jwt.sign({
-          userId: verifyUser._id.toString(),
-          exp: Math.floor(Date.now() / 1000) + (120 * 60),
-          iat: Math.floor(Date.now())
-      }, 'secret-key');
+    let token = jwt.sign(
+      {
+        userId: verifyUser._id.toString(),
+        exp: Math.floor(Date.now() / 1000) + 120 * 60,
+        iat: Math.floor(Date.now()),
+      },
+      "secret-key"
+    );
 
-      res.setHeader("x-api-key", token);
-      res.status(200).send({ status: true, message: "Successfully Login.", data:{ userId: verifyUser["_id"], token }});
+    res.setHeader("x-api-key", token);
+    res.status(200).send({
+      status: true,
+      message: "Successfully Login.",
+      data: { userId: verifyUser["_id"], token },
+    });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -210,7 +217,7 @@ const updateUser = async function (req, res) {
       });
 
     let updatedData = {};
-       
+
     if (userName) {
       if (typeof userName != "string")
         return res.status(400).send({
@@ -267,7 +274,7 @@ const updateUser = async function (req, res) {
       }
 
       let hashing = bcrypt.hashSync(password, 8);
-      
+
       updatedData.password = hashing;
     }
 

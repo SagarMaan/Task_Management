@@ -5,35 +5,43 @@ const userModel = require("../models/userModel");
 const taskModel = require("../models/taskModel");
 
 // ======================================= AUTHENTICATION =============================================//
-const isAuthenticated = async function ( req , res , next ) {
+const isAuthenticated = async function (req, res, next) {
   try {
-      let token = req.headers['x-api-key']; 
+    let token = req.headers["x-api-key"];
 
-      if (!token) {
-          return res.status(400).send({ status: false, message: "Token must be Present." });
+    if (!token) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Token must be Present." });
+    }
+
+    JWT.verify(token, "secret-key", function (err, decodedToken) {
+      if (err) {
+        if (err.name === "JsonWebTokenError") {
+          return res
+            .status(401)
+            .send({ status: false, message: "invalid token" });
+        }
+
+        if (err.name === "TokenExpiredError") {
+          return res
+            .status(401)
+            .send({
+              status: false,
+              message: "You are logged out, login again",
+            });
+        } else {
+          return res.send({ msg: err.message });
+        }
+      } else {
+        req.token = decodedToken;
+        next();
       }
-
-      JWT.verify( token, "secret-key", function ( err , decodedToken ) {
-          if (err) {
-              if (err.name === 'JsonWebTokenError') {
-                  return res.status(401).send({ status: false, message: "invalid token" });
-              }
-
-              if (err.name === 'TokenExpiredError') {
-                  return res.status(401).send({ status: false, message: "You are logged out, login again" });
-              } else {
-                  return res.send({ msg: err.message });
-              }
-          } else {
-              req.token = decodedToken;
-              next();
-          }
-      });
-
+    });
   } catch (error) {
-      res.status(500).send({ status: 'error', error: error.message });
+    res.status(500).send({ status: "error", error: error.message });
   }
-}
+};
 
 // =========================================== AUTHORISATION ===========================================//
 
@@ -44,46 +52,42 @@ const isAuthorized = async function (req, res, next) {
     // if (req.originalUrl === "/task") {
     //   let userId = req.body.userId;
 
-    let userId = req.params.userId
-      if (!userId) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "UserId must be present for Authorization.",
-          });
-      }
-      if (userId && typeof userId != "string") {
-        return res
-          .status(400)
-          .send({ status: false, message: "UserId must be in string." });
-      }
+    let userId = req.params.userId;
+    if (!userId) {
+      return res.status(400).send({
+        status: false,
+        message: "UserId must be present for Authorization.",
+      });
+    }
+    if (userId && typeof userId != "string") {
+      return res
+        .status(400)
+        .send({ status: false, message: "UserId must be in string." });
+    }
 
-      userId = userId.trim();
-      
-      if (!isValidObjectId(userId)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Invalid user id" });
-      }
+    userId = userId.trim();
 
-      const userData = await userModel.findById(userId);
-      
-      if (!userData) {
-        return res
-          .status(404)
-          .send({ status: false, message: "The user id does not exist" });
-      }
+    if (!isValidObjectId(userId)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid user id" });
+    }
 
-      if (loggedUserId != userId) {
-        return res
-          .status(403)
-          .send({
-            status: false,
-            message:
-              "Not authorized,please provide your own user id for task creation",
-          });
-      }
+    const userData = await userModel.findById(userId);
+
+    if (!userData) {
+      return res
+        .status(404)
+        .send({ status: false, message: "The user id does not exist" });
+    }
+
+    if (loggedUserId != userId) {
+      return res.status(403).send({
+        status: false,
+        message:
+          "Not authorized,please provide your own user id for task creation",
+      });
+    }
 
     //   req.body.userId = userId;
     // } else {

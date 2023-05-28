@@ -13,7 +13,7 @@ const {
 const createTask = async function (req, res) {
   try {
     let userId = req.params.userId;
-// if userid then check is it present in DB or not 
+    // if userid then check is it present in DB or not
     if (userId) {
       let checkUserId = await userModel.findById({ _id: userId });
       if (checkUserId.role === "Visitor") {
@@ -28,7 +28,8 @@ const createTask = async function (req, res) {
 
     let { title, description, status, priority, dueDate } = body;
 
-    if (Object.keys(body).length === 0) { // check that any attribute is present or not
+    if (Object.keys(body).length === 0) {
+      // check that any attribute is present or not
       return res
         .status(400)
         .send({ status: false, message: "Body can not be empty" });
@@ -116,7 +117,7 @@ const createTask = async function (req, res) {
 
 const getTask = async function (req, res) {
   try {
-    // give all task list to a user which have user id and it is authenticated 
+    // give all task list to a user which have user id and it is authenticated
     // all validations apply on user in autherization middleware
     const taskDetails = await taskModel.find().select({
       createdAt: 0,
@@ -138,8 +139,8 @@ const getTaskById = async function (req, res) {
   try {
     let taskId = req.query.taskId;
     let userId = req.params.userId;
-// there are two conditions
-// if userId and TaskId both are present then userId validate in autherization middleware and taskId here
+    // there are two conditions
+    // if userId and TaskId both are present then userId validate in autherization middleware and taskId here
     if (taskId) {
       if (!isValidObjectId(taskId)) {
         return res
@@ -150,7 +151,7 @@ const getTaskById = async function (req, res) {
         createdAt: 0,
         updatedAt: 0,
         __v: 0,
-      }); 
+      });
       if (!checkTaskId) {
         return res.status(404).send({
           status: false,
@@ -161,9 +162,9 @@ const getTaskById = async function (req, res) {
       return res
         .status(200)
         .send({ status: true, message: "Task Data.", data: checkTaskId });
-        
-    } else if (userId) { // but if only userId is present then validation is performed already in middleware on it
-      let taskList = await taskModel.find({userId}).select({
+    } else if (userId) {
+      // but if only userId is present then validation is performed already in middleware on it
+      let taskList = await taskModel.find({ userId }).select({
         createdAt: 0,
         updatedAt: 0,
         __v: 0,
@@ -179,13 +180,12 @@ const getTaskById = async function (req, res) {
       return res
         .status(200)
         .send({ status: true, message: "Task Data.", data: taskList });
-    } else { // if there is nothing not a userId and taskId then give this message to the user 
-      return res
-        .status(200)
-        .send({
-          status: true,
-          message: "Either a userId or TaskId should be present in params .",
-        });
+    } else {
+      // if there is nothing not a userId and taskId then give this message to the user
+      return res.status(200).send({
+        status: true,
+        message: "Either a userId or TaskId should be present in params .",
+      });
     }
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
@@ -325,7 +325,7 @@ const updateTask = async function (req, res) {
     }
 
     let updatedTask = await taskModel.findOneAndUpdate(
-      { _id: trimId },
+      { _id: taskId },
       updateData,
       { new: true }
     );
